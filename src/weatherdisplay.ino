@@ -1,4 +1,10 @@
-
+/*
+ * Weather data display to be used with the IoT web app and sensor node by Digit Codeclub (Digitin koodikerho) https://github.com/DigitKoodit/iot-workshop
+ * Board used: 	Wemos D1 Mini Pro v2.0.0
+ * Shield: 		Wemos TFT 2.4" touch screen shield for D1 mini
+ *
+ * By Antti Auranen
+ */
 
 #include <Arduino.h>
 
@@ -16,13 +22,15 @@
 #define TS_CS D3   //for D1 mini or TFT I2C Connector Shield (V1.1.0 or later)
 
 
-#define SSID "" 				// Wifi SSID
-#define PASSWD "" 		// Wifi passwd
+#define SSID "" 										// Wifi SSID
+#define PASSWD "" 									// Wifi passwd
 
-// #define SSID "Ebin-AP" 				// Wifi SSID
-// #define PASSWD "Kissimirri" 		// Wifi passwd
+// #define SSID "Ebin-AP" 							// Wifi SSID
+// #define PASSWD "Kissimirri" 						// Wifi passwd
 #define IP "http://127.0.0.1:3001/api/getReadings/1"	// Server IP-address
-#define NAME "WeatherDisplay"
+#define NAME "WeatherDisplay"						// Device name
+
+
 
 ESP8266WiFiMulti WiFiMulti;
 
@@ -46,6 +54,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
 
 void setup() {
   	Serial.begin(115200);
+	pinMode(A0, INPUT);
 
   	tft.begin();
   	tft.setTextColor(ILI9341_WHITE);
@@ -63,11 +72,16 @@ void loop() {
 	// DynamicJsonDocument doc(capacity);
   	// char output[128];
 	// JsonObject& data = jb.createObject();
-
+	float volt;
+	unsigned int raw = 0;
   	String payload = "";
 
   	Serial.println();
 	
+	raw = analogRead(A0);
+  	volt=raw/1023.0;
+  	volt=volt*4.2;
+
 	if (WiFiMulti.run() == WL_CONNECTED)
 	{
 		HTTPClient http;
@@ -95,6 +109,7 @@ void loop() {
 			// Serial.println(payload);
 			// String temp = parseTemp(payload);
 			tft.fillScreen(ILI9341_BLACK);
+			tft.setTextColor(ILI9341_WHITE);
 			// tft.println("Temperature: ");
 			// tft.setCursor(0, 10);
 			// tft.println(temp);
@@ -139,6 +154,10 @@ void loop() {
 			// tft.setCursor(0, 20);
 			tft.print("%: ");
 			tft.println(humi);
+
+			tft.setTextColor(ILI9341_GREEN);
+			tft.print("Battery: ");
+			tft.println(volt);
 
 			// float temp = parseTemp(payload);
 			// tft.println(doc["temperature"].as<float>(), 6);
